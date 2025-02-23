@@ -1,0 +1,17 @@
+{
+    "id": "party-shifts",
+    "name": "Party Shifts",
+    "description": "Adds realistic shifts in party demographics by state based on politician approval ratings.",
+    "author": "Xoraurea",
+    "version": {
+        "major": 0,
+        "minor": 1,
+        "revision": 0,
+        "string": "b0.1.0"
+    },
+    "required_loader_version": {
+        "major": 0,
+        "minor": 1,
+        "revision": 0
+    }
+}

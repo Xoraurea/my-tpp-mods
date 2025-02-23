@@ -1,0 +1,370 @@
+/* Mod List - mod-list/styles/general.css
+   General styling for UI elements */
+
+/* Define the custom font. */
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-Regular.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-Italic.woff2") format("woff2");
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-Bold.woff2") format("woff2");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-BoldItalic.woff2") format("woff2");
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* UI elements. */
+
+#evtCmdrBackDiv,.evtCmdrDialogBack {
+    position: absolute;
+    z-index: 2;
+
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+
+    backdrop-filter: blur(5px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-family: "PlexSansRegular", Georgia, Courier New, monospace;
+}
+
+.evtCmdrListClose {
+    position: absolute;
+    
+    top: 10px;
+    right: 10px;
+
+    padding-top: 2px;
+    padding-left: 6px;
+    padding-right: 6px;
+
+    border-radius: 5px;
+    border: 2px solid hsl(0, 45%, 37%);
+    background-color: hsl(0, 50%, 45%);
+    color: white;
+
+    font-size: 20px;
+    text-align: center;
+
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.evtCmdrListClose:hover {
+    border: 2px solid hsl(0, 45%, 50%);
+}
+
+#evtCmdrMainDiv,.evtCmdrDialogMain {
+    position: relative;
+
+    max-width: 70%;
+    width: 850px;
+    max-height: 80%;
+    
+    border: 1px solid hsl(0, 0%, 20%);
+    border-radius: 5px;
+
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-between;
+    align-items: center;
+}
+
+.evtCmdrDialogMain {
+    width: 600px;
+}
+
+#evtCmdrMainDiv h2,.evtCmdrDialogMain h2 {
+    font-size: 28px;
+
+    margin: 10px;
+    margin-bottom: 0px;
+}
+
+#evtCmdrMainDiv hr,.evtCmdrDialogMain hr {
+    width: calc(100% - 40px);
+}
+
+.evtCmdrListDiv {
+    display: flex;
+    flex-direction: column;
+
+    margin-top: 10px;
+    margin-bottom: 15px;
+
+    border: 1px solid;
+    border-radius: 5px;
+
+    width: calc(100% - 40px);
+    
+    height: 800px;
+    max-height: 70%;
+
+    /*overflow: scroll;*/
+    overflow-x: hidden;
+}
+
+.evtCmdrListDiv a:hover {
+    text-decoration: underline;
+}
+
+#evtCmdrControlDiv,.evtCmdrDialogControls {
+    display: flex;
+    align-items: center;
+
+    width: calc(100% - 38px);
+    margin-bottom: 15px;
+}
+
+.evtCmdrDialogControls {
+    margin-top: 10px;
+}
+
+.evtCmdrControlButton {
+    padding: 2px;
+    padding-left: 6px;
+    padding-right: 6px;
+
+    min-width: 100px;
+    margin-right: 5px;
+
+    border: 1px solid;
+    border-radius: 5px;
+
+    background: none;
+    border-color: hsl(0, 0%, 20%);
+    transition: border-color 0.25s;
+
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+
+    font-size: 20px;
+    font-family: "PlexSansRegular", Georgia, Courier New, monospace;
+}
+
+.evtCmdrControlButton:hover {
+    border-color: hsl(0, 0%, 45%);
+    transition: border-color 0.25s;
+}
+
+.evtCmdrControlButton:nth-child(2){
+    margin-right: auto;
+}
+
+.evtCmdrDialogControls .evtCmdrControlButton:first-child {
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+.evtCmdrControlButton:last-child {
+    margin-right: 0px;
+}
+
+#evtCmdrSoloButton {
+    margin-left: auto;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.evtCmdrDialogInfo {
+    width: calc(100% - 40px);
+
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.evtCmdrDialogInput {
+    padding: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: calc(100% - 40px);
+
+    border: 1px solid;
+    border-radius: 5px;
+
+    border-color: hsl(0, 0%, 20%);
+    transition: border-color 0.25s;
+
+    font-size: 20px;
+    font-family: "PlexSansRegular", Georgia, Courier New, monospace;
+}
+
+.evtCmdrDialogInput:hover {
+    border-color: hsl(0, 0%, 45%);
+    transition: border-color 0.25s;
+}
+
+/* Event list item stuff. */
+
+.evtCmdrListItem {
+    display: flex;
+    flex-direction: column;
+}
+
+.evtCmdrItemRoot {
+    display: flex;
+
+    flex-direction: row;
+    align-items: center;
+
+    padding: 5px;
+}
+
+.evtCmdrExpandButton {
+    margin-left: 5px;
+    width: 30px;
+
+    background: none;
+    border: none;
+
+    text-align: center;
+    font-family: "PlexSansRegular", Georgia, Courier New, monospace;
+    font-size: 24px;
+}
+
+.evtCmdrPackageLabel {
+    margin-left: 5px;
+    margin-right: auto;
+
+    font-size: 22px;
+}
+
+.evtCmdrChildList {
+    display: flex;
+    flex-direction: column;
+}
+
+.evtCmdrChildItem {
+    display: flex;
+    flex-direction: column;
+
+    padding: 5px;
+}
+
+.evtCmdrChildHeader {
+    display: flex;
+    flex-direction: row;
+
+    margin-left: 10px;
+    font-size: 16px;
+}
+
+.evtCmdrToggleButton,.evtCmdrChildRemove,.evtCmdrItemRemove,.evtCmdrRootToggle
+,.evtCmdrItemButton,.evtCmdrChildButton {
+    padding: 2px;
+    padding-left: 6px;
+    padding-right: 6px;
+
+    margin-left: auto;
+    margin-right: /*5px*/ 2px;
+
+    background: none;
+    border: 1px solid;
+    border-radius: 3px;
+
+    font-family: "PlexSansRegular", Georgia, Courier New, monospace;
+    font-size: 16px;
+}
+
+.evtCmdrChildRemove,.evtCmdrRootToggle,.evtCmdrItemRemove,.evtCmdrItemButton
+,.evtCmdrChildButton {
+    margin-left: 5px;
+}
+
+.evtCmdrRootToggle.enable {
+    margin-left: auto;
+}
+
+.evtCmdrItemRemove,.evtCmdrRootToggle {
+    font-size: 18px;
+}
+
+.evtCmdrItemButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 29px;
+}
+
+.evtCmdrItemButton,.evtCmdrChildButton {
+    transition: border-color 0.25s;
+    border-color: hsl(0, 0%, 37%);
+}
+
+.evtCmdrItemButton:hover,.evtCmdrChildButton:hover {
+    border-color: hsl(0, 0%, 45%);
+}
+
+.evtCmdrToggleButton.disabled,.evtCmdrChildRemove,.evtCmdrItemRemove,.evtCmdrRootToggle.disable {
+    transition: border-color 0.25s;
+    border-color: hsl(0, 45%, 37%);
+}
+
+.evtCmdrToggleButton.disabled:hover,.evtCmdrChildRemove:hover,.evtCmdrItemRemove:hover,.evtCmdrRootToggle.disable:hover {
+    transition: border-color 0.25s;
+    border-color: hsl(0, 50%, 45%);
+}
+
+.evtCmdrToggleButton.enabled,.evtCmdrRootToggle.enable {
+    transition: border-color 0.25s;
+    border-color: hsl(110, 45%, 37%);
+}
+
+.evtCmdrToggleButton.enabled:hover,.evtCmdrRootToggle.enable:hover {
+    transition: border-color 0.25s;
+    border-color: hsl(110, 50%, 45%);
+}
+
+.evtCmdrRootToggle.enable.allEnabled {
+    border-color: hsl(110, 50%, 45%);
+}
+
+.evtCmdrRootToggle.enable.allEnabled:hover {
+    border-color: hsl(110, 50%, 60%);
+}
+
+.evtCmdrRootToggle.disable.allDisabled {
+    border-color: hsl(0, 50%, 45%);
+}
+
+.evtCmdrRootToggle.disable.allDisabled:hover {
+    border-color: hsl(0, 50%, 60%);
+}
+
+.evtCmdrChildDesc {
+    margin-left: 10px;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.evtCmdrShareIcon {
+    width: auto;
+    height: 19px;
+}

@@ -1,0 +1,20 @@
+/* Better Election Maps - better-maps/styles/light.css
+   Light mode styling for UI elements */
+
+.better-maps-container {
+   background: hsl(0, 0%, 95%);
+}
+
+.better-maps-state-path {
+   stroke: hsl(0, 0%, 20%);
+   stroke-width: 0.5px;
+}
+
+#better-maps-tooltip {
+   background: hsl(0, 0%, 95%);
+   color: hsl(0, 0%, 20%);
+}
+
+#better-maps-tooltip-reporting {
+   color: hsl(0, 0%, 40%);
+}

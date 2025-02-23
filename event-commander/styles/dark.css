@@ -1,0 +1,55 @@
+/* Event Commander - event-commander/styles/dark.css
+   Dark mode styling for UI elements */
+
+#evtCmdrBackDiv,.evtCmdrDialogBack {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#evtCmdrMainDiv,.evtCmdrDialogMain {
+    background-color: hsl(0, 0%, 30%);
+    color: hsl(0, 0%, 80%);
+}
+
+#evtCmdrMainDiv hr,.evtCmdrDialogMain hr {
+    border: 0px;
+    border-bottom: 1px solid hsl(0, 0%, 60%);
+}
+
+.evtCmdrListDiv {
+    background: hsl(0, 0%, 25%);
+    border-color: hsl(0, 0%, 20%);
+}
+
+.evtCmdrListDiv a {
+    color: hsl(0, 0%, 80%);
+}
+
+.evtCmdrControlButton {
+    color: hsl(0, 0%, 80%);
+}
+
+.evtCmdrDialogInput {
+    background: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 80%);
+}
+
+/* Event list item stuff. */
+
+.evtCmdrExpandButton {
+    transition: color 0.25s;
+    color: hsl(0, 0%, 60%);
+}
+
+.evtCmdrExpandButton:hover {
+    transition: color 0.25s;
+    color: hsl(0, 0%, 80%);
+}
+
+.evtCmdrToggleButton,.evtCmdrChildRemove,.evtCmdrItemRemove,.evtCmdrRootToggle
+,.evtCmdrChildButton {
+    color: hsl(0, 0%, 80%);
+}
+
+.evtCmdrShareIcon {
+    content: url("../resources/share_white_small.png");
+}

@@ -1,0 +1,197 @@
+/* Better Election Maps - better-maps/styles/general.css
+   General styling for UI elements */
+
+/* Define the custom font. */
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-Regular.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-Italic.woff2") format("woff2");
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-Bold.woff2") format("woff2");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PlexSansRegular";
+    src: url("plex-sans/IBMPlexSans-BoldItalic.woff2") format("woff2");
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* UI elements. */
+
+.better-maps-container {
+    margin-left: 4px;
+    margin-right: 4px;
+
+    border: 1px solid hsl(0, 0%, 10%);    
+    border-radius: 5px;
+
+    z-index: 2;
+}
+
+#eSimMapDivRel .better-maps-container,#eSimMapDiv .better-maps-container {
+    float: left;
+    margin: 10px;
+
+    border-color: hsl(0, 0%, 20%);
+    border-radius: 10px;
+}
+
+#polProfInnerContent .better-maps-container {
+    border-color: hsl(0, 0%, 20%);
+}
+
+.better-maps-state-path:hover {
+    stroke: hsl(0, 0%, 0%);
+    stroke-width: 1px;
+}
+
+#better-maps-tooltip {
+    z-index: 4;
+    position: fixed;
+    
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid hsl(0, 0%, 15%);
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+
+    width: 300px;
+
+    padding-bottom: 5px;
+
+    font-family: "PlexSansRegular", Georgia, Courier New, monospace;
+}
+
+#better-maps-tooltip-win-line {
+    width: 100%;
+    height: 10px;
+
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+
+    background: #cccccc;
+}
+
+#better-maps-tooltip hr {
+    width: calc(100% - 20px);
+
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#better-maps-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin: 0px;
+    margin-top: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#better-maps-tooltip-title {
+    font-size: 22px;
+}
+
+#better-maps-tooltip-reporting {
+    font-size: 16px;
+}
+
+#better-maps-tooltip-no-election,#better-maps-tooltip-not-counted {
+    font-size: 16px;
+
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#better-maps-tooltip-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    font-size: 16px;
+
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#better-maps-tooltip-entries hr {
+    width: 100% !important;
+    margin-top: 0px !important;
+}
+
+.better-maps-tooltip-entry {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    flex-grow: 1;
+
+    margin-bottom: 5px;
+}
+
+.better-maps-tooltip-party-tab {
+    width: 5px;
+    height: 48px;
+    border-radius: 2px;
+}
+
+.better-maps-tooltip-entry-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    width: 100%;
+
+    margin-left: 8px;
+}
+
+.better-maps-tooltip-entry-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+
+    font-size: 20px;
+}
+
+.better-maps-tooltip-vote-share {
+    margin-left: auto;
+    margin-right: 0px;
+}
+
+.better-maps-tooltip-vote-count {
+    font-size: 14px;
+    text-align: right;
+
+    width: 100%;
+}
+
+/* Modifications to default game components. */
+#ePageProjectB,#ePageMarginB {
+    z-index: 3;
+}
+
+.electNightInnP {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

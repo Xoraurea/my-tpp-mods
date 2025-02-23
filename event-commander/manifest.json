@@ -1,0 +1,17 @@
+{
+    "id": "event-commander",
+    "name": "Event Commander",
+    "description": "Overhauls the UI for loading, enabling and disabling custom events.",
+    "author": "Xoraurea",
+    "version": {
+        "major": 0,
+        "minor": 1,
+        "revision": 0,
+        "string": "b0.1.0"
+    },
+    "required_loader_version": {
+        "major": 0,
+        "minor": 1,
+        "revision": 0
+    }
+}
