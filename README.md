@@ -11,6 +11,7 @@ All of my mods are currently in beta – please report any bugs you discover!
 ### Features
 
 - **Smoother maps!** The improved maps are smoother to interact with and hover over.
+- **County-level maps!** The mod now supports viewing state results at the county level.
 - **Dark mode support!** The mod's maps fully support dark mode in the background of the maps and in tooltips.
 - **Custom party colours!** You can define whatever colours you prefer for Democrats, Republicans, Independent Democrats and Independent Republicans in the mod's `config.json` file.
 - **More visible independents!** Distinct colours are now used to represent Independent Democrats and Independent Republicans. The Politicians tab also now shows states with mixed D-I or R-I delegations distinctly.
@@ -18,7 +19,6 @@ All of my mods are currently in beta – please report any bugs you discover!
 
 ### Planned Features
 
-- Support for county-level views.
 - A live tracker of races which have been called on election nights.
 
 ### Configuration
