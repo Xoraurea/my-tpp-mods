@@ -6,7 +6,9 @@
             "D": {"h": 210, "s": 50.7, "l": 71.4},
             "R": {"h": 2, "s": 47.2, "l": 68.0},
             "default": {"h": 0, "s": 0, "l": 80}
-        }
+        },
+        "HouseTie": {"h": 0, "s": 0, "l": 90}
     },
-    "showPanePartyID": true
+    "showPanePartyID": true,
+    "useRelativeColourScale": false
 }

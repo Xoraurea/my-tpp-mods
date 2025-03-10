@@ -54,13 +54,13 @@
         return {main: entryMainDiv, topRow: entryTopRow, countRow: entryBottomRow};
     };
     
-    const createNewEntries = (currentDistrict, live, fillTop, primary) => {
+    const createNewEntries = (currentDistrict, live, fillTop, primary, countyView) => {
         /* Add the current percentage reported. */
         const percentReported = Math.round((currentDistrict.totalCurrVotes / currentDistrict.totalVotes) * 100);
         if(!primary) tooltipComponents.reporting.innerText = percentReported.toLocaleString() + "% reporting";
 
         let highestTotal = 0; let winnerEntry = null; let winner = null;
-        let currentHighestTotal = 0; let currentHighestEntry = null;
+        let currentHighestTotal = 0; let currentHighestEntry = null; let currentWinner = null;
 
         const sortedCands = currentDistrict.cands.slice().sort((cand1, cand2) => {
             if(live) return cand2.currentVotes - cand1.currentVotes;
@@ -74,11 +74,22 @@
             const newEntry = createTooltipEntry(candidate, currentDistrict, live);
             tooltipComponents.entries.appendChild(newEntry.main);
 
-            if(currentIndex === 0) currentHighestEntry = newEntry;
+            if(currentIndex === 0){
+                winnerEntry = newEntry;
+                currentHighestEntry = newEntry;
+                currentWinner = candidate;
+            };
+
             if(candidate.votes >= highestTotal){
                 highestTotal = candidate.votes;
                 winnerEntry = newEntry;
                 winner = candidate;
+            }
+
+            if(live && candidate.currentVotes >= currentHighestTotal){
+                currentHighestTotal = candidate.currentVotes;
+                currentHighestEntry = newEntry;
+                currentWinner = candidate;
             }
 
             if(candidate.win !== undefined && (primary === false || live === false)){
@@ -88,9 +99,16 @@
             currentIndex++;
         });
 
+        if(!live){
+            currentHighestTotal = highestTotal;
+            currentHighestEntry = winnerEntry;
+            currentWinner = winner;
+        }
+
         /* Now we go back around one more time to get the highest candidate's lead. */
         let currentSecondVotes = 0; let currentSecondEntry = undefined;
-        const reducedArray = sortedCands.filter(newCand => (newCand !== winner));
+        const reducedArray = sortedCands.filter(newCand => (newCand !==
+            (live ? currentWinner : winner)));
 
         reducedArray.forEach(candidate => {
             if(candidate.currentVotes >= currentSecondVotes){
@@ -100,20 +118,21 @@
         });
 
         const highestVotes = live ? sortedCands[0].currentVotes : sortedCands[0].votes;
+        const secondHighestVotes = (sortedCands[1] !== undefined) ? (live ? sortedCands[1].currentVotes : sortedCands[1].votes) : 0;
 
         /* Add lead to the current leader's entry. */
-        currentHighestEntry.countRow.innerText = `(+${(Math.round(highestVotes) - Math.round(currentSecondVotes)).toLocaleString()}) `
+        currentHighestEntry.countRow.innerText = `(+${(Math.round(highestVotes) - Math.round(secondHighestVotes)).toLocaleString()}) `
             + currentHighestEntry.countRow.innerText;
 
         /* If there's a projected winner, show a line at the top with the party colour of the winner.
            In addition, make the winner's entry bold. */
-        if(currentDistrict.pW === true || !live){
+        if((currentDistrict.pW === true || !live) && !countyView){
             if(fillTop) tooltipComponents.winnerLine.setAttribute("style", `background-color: ${stringifyColour(getCandidateColour(winner))};`);
             winnerEntry.topRow.setAttribute("style", "font-weight: bold;");
         }
     };
 
-    const updateTooltip = (electionType, districtId, force, live) => {
+    const updateTooltip = (electionType, districtId, force, live, countyView) => {
         if(tooltipComponents.properties.visible === false) return;
 
         if(electionType === tooltipComponents.properties.electionType
@@ -125,8 +144,84 @@
         let currentResults = resultProxies[electionType];
         let currentDistrict = currentResults[districtId];
 
-        /* Set the district name. For now, this will always be a state name. */
-        tooltipComponents.title.innerText = Executive.data.states[districtId].name;
+        /* If we're in the county view, we need to change the district. */
+        if(countyView){
+            const actualStDistrict = currentResults[activeMap];
+
+            if(actualStDistrict === undefined){
+                currentDistrict = undefined;
+            } else {
+                const origCounty = actualStDistrict.counties.filter(candCounty => {
+                    const truncatedName = candCounty.name.substring(0, candCounty.name.lastIndexOf(" "));
+
+                    const replacedName = candCounty.name.toLowerCase().replace(/ /g, "_").replace(/\./g, "");
+                    const truncatedReplacedName = truncatedName.toLowerCase().replace(/ /g, "_").replace(/\./g, "");
+
+                    return (replacedName === districtId || truncatedReplacedName === districtId);
+                })[0];
+
+                const stateElectData = allStElectData.filter(electData => (electData.id === activeMap))[0];
+
+                let totalCurrVotes = 0;
+                let totalVotes = 0;
+
+                const newCounty = {
+                    name: origCounty.name,
+                    cands: origCounty.cands.map(candObj => {
+                        const newCandObj = Object.assign({}, candObj);
+
+                        if(!live){
+                            newCandObj.currentVotes = newCandObj.votes;
+                        } else {
+                            const countyElectData = stateElectData.counties.filter(candCountyData => (candCountyData.name === origCounty.name))[0];
+                            newCandObj.currentVotes = (newCandObj.votes * candObj.updates[countyElectData.indx]);
+                        }
+
+                        totalCurrVotes += newCandObj.currentVotes;
+                        totalVotes += newCandObj.votes;
+
+                        return newCandObj;
+                    })
+                };
+
+                newCounty.totalCurrVotes = totalCurrVotes;
+                newCounty.totalVotes = totalVotes;
+
+                currentDistrict = newCounty;
+            }
+        }
+
+        /* We have a special case for non-live presidential primary maps,
+           where electNightP doesn't contain everything we need for
+           tooltips. */
+        if(electionType === "president" && !live && currentDistrict === undefined){
+            const filteredDemStates = presPrimaryDemArray.states.filter(stateObj => (stateObj.name === Executive.data.states[districtId].name));
+            const filteredRepStates = presPrimaryRepArray.states.filter(stateObj => (stateObj.name === Executive.data.states[districtId].name));
+            if(filteredDemStates.length !== 0){
+                const demPrimState = filteredDemStates[0];
+                const repPrimState = filteredRepStates[0];
+
+                currentDistrict = {
+                    dem: {
+                        cands: demPrimState.candidates.map(cand => {
+                            cand.votes = cand.totVotes;
+                            return cand;
+                        })
+                    },
+                    rep: {
+                        cands: repPrimState.candidates.map(cand => {
+                            cand.votes = cand.totVotes;
+                            return cand;
+                        })
+                    }
+                };
+            }
+        }
+
+        /* Set the district name. */
+        tooltipComponents.title.innerText = countyView
+            ? currentDistrict.name.substring(0, currentDistrict.name.lastIndexOf(" "))
+            : Executive.data.states[districtId].name;
 
         /* Reset the components ready to be set for the new district. */
         tooltipComponents.winnerLine.setAttribute("style", "display: none;");
@@ -147,9 +242,31 @@
         /* We need to determine if this is a primary or a general election. */
         if(currentDistrict.cands === undefined){
             if(live && electionType !== "president"){
-                tooltipComponents.properties.visible = false;
-                tooltipDiv.setAttribute("style", "display: none;");
-                return;
+                /* Unlike on election night, the game doesn't track the current vote count for each statewide
+                   race in live coverage of non-presidential primaries. To get it to calculate the current vote
+                   count, we have to set the active map and call eNightUSSUpdate. This will fail if the user
+                   hasn't clicked the state they're hovering over, but that's fine; it does what we need before. */
+                const prevActiveMap = activeMap;
+                activeMap = districtId.toUpperCase();
+
+                const dummyElem = document.createElement("div");
+                const originalGetElement = document.getElementById;
+
+                /* To stop the sidebar from being messed up by our eNightUSSUpdate, we have to stop the game
+                   from being able to access the sidebar temporarily. This is the dumbest solution to this issue
+                   ever. I both love and hate it. */
+                document.getElementById = () => {
+                    return dummyElem;
+                };
+
+                try {
+                    eNightUSSUpdate();
+                } catch {}
+
+                document.getElementById = originalGetElement;
+                dummyElem.remove();
+
+                activeMap = prevActiveMap;
             }
             
             /* We create a fake completed district for each party and use that to populate the tooltip.
@@ -159,7 +276,9 @@
                 let newCandArray = [];
 
                 currentDistrict.allCands.cands.forEach(candidate => {
-                    voteTotal += (live ? candidate.currentVotes : candidate.votes);
+                    voteTotal += (live ? 
+                        ((candidate.currentVotes === undefined) ? 0 : candidate.currentVotes)
+                        : candidate.votes);
 
                     /* Because the game is silly and doesn't include party affiliations with non-affiliated candidates,
                        we have to instead fetch the candidate's player object by internal ID and wrap it using the
@@ -173,7 +292,7 @@
                     );
                     
                     if(wrappedCandObj.extendedAttribs.party === "Independent"){
-                        newCand.caucus = wrappedCandObj.party.substring(0, 1);
+                        newCand.caucus = wrappedCandObj.caucusParty.substring(0, 1);
                     }
 
                     newCand.party = wrappedCandObj.extendedAttribs.party.substring(0, 1);
@@ -192,14 +311,16 @@
                     pW: false
                 };
 
-                createNewEntries(fakeDistrict, live, false, true);
+                createNewEntries(fakeDistrict, live, false, true, countyView);
             } else {
                 if(currentDistrict.dem.cands.length !== 0){
                     let demVoteTotal = 0;
                     let newDemCandArray = [];
 
                     currentDistrict.dem.cands.forEach(candidate => {
-                        demVoteTotal += (live ? candidate.currentVotes : candidate.votes);
+                        demVoteTotal += (live ? 
+                            ((candidate.currentVotes === undefined) ? 0 : candidate.currentVotes)
+                            : candidate.votes);
 
                         const newCand = Object.assign({}, candidate);
                         newCand.party = "D";
@@ -218,7 +339,7 @@
                         return;
                     }
 
-                    createNewEntries(demFakeDistrict, live, false, true);
+                    createNewEntries(demFakeDistrict, live, false, true, countyView);
 
                     if(currentDistrict.rep.cands.length !== 0){
                         tooltipComponents.entries.appendChild(document.createElement("hr"));
@@ -229,7 +350,9 @@
                     let newRepCandArray = [];
 
                     currentDistrict.rep.cands.forEach(candidate => {
-                        repVoteTotal += (live ? candidate.currentVotes : candidate.votes);
+                        repVoteTotal += (live ? 
+                            ((candidate.currentVotes === undefined) ? 0 : candidate.currentVotes)
+                            : candidate.votes);
 
                         const newCand = Object.assign({}, candidate);
                         newCand.party = "R";
@@ -243,14 +366,21 @@
                         pW: false
                     };
 
-                    createNewEntries(repFakeDistrict, live, false, true);
+                    createNewEntries(repFakeDistrict, live, false, true, countyView);
                 }
             }
         } else {
-            /* This is a nice and simple general election. */
+            /* This is a nice and simple general election. If it's a presidential
+               election, we want to show the Electoral College vote count. */
+            if(electionType === "president" && !countyView
+                && !(live && currentDistrict.totalCurrVotes === 0)){
+                tooltipComponents.electors.innerText = `Sends ${Executive.data.states[districtId].electoralNum} electors to the Electoral College.`;
+                tooltipComponents.electors.removeAttribute("style");
+            } else tooltipComponents.electors.setAttribute("style", "display: none;");
+
             if(live && currentDistrict.totalCurrVotes === 0){
                 tooltipComponents.notCounting.removeAttribute("style");
-            } else createNewEntries(currentDistrict, live, true, false);
+            } else createNewEntries(currentDistrict, live, true, false, countyView);
         }
     };
 
@@ -297,6 +427,11 @@
         tooltipComponents.entries = document.createElement("div");
         tooltipComponents.entries.setAttribute("id", "better-maps-tooltip-entries");
         tooltipDiv.appendChild(tooltipComponents.entries);
+
+        tooltipComponents.electors = document.createElement("div");
+        tooltipComponents.electors.setAttribute("id", "better-maps-tooltip-electors");
+        tooltipComponents.electors.setAttribute("style", "display: none;");
+        tooltipDiv.appendChild(tooltipComponents.electors);
 
         document.body.appendChild(tooltipDiv);
     };

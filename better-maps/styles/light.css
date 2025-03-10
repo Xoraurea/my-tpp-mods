@@ -5,9 +5,14 @@
    background: hsl(0, 0%, 95%);
 }
 
-.better-maps-state-path {
-   stroke: hsl(0, 0%, 20%);
-   stroke-width: 0.5px;
+#dc-state-path,#dc-state-path-live {
+   stroke: hsl(0, 0%, 95%);
+   stroke-width: 1px;
+}
+
+.better-maps-state-path:hover {
+   stroke: hsl(0, 0%, 0%) !important;
+   stroke-width: 1.5px;
 }
 
 #better-maps-tooltip {

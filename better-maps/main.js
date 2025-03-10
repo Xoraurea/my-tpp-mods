@@ -22,6 +22,11 @@
 
     let config = null;
 
+    let onCountyMap = false;
+    let lastMapElectionType = "none";
+
+    let lastUpdateDataHook = null;
+
     const getRaceInfo = (district, live) => {
         const sortedCands = district.cands.slice().sort((cand1, cand2) => {
             if(live) return cand2.currentVotes - cand1.currentVotes;
@@ -74,12 +79,21 @@
                 }
             });
 
-            if(majorities.length > 0){
+            if(config.useRelativeColourScale){
+                /* This is the old colour scale behaviour. */
+                if(majorities.length > 0){
+                    majorityScale = d3.scaleLinear(
+                        d3.extent(majorities),
+                        [0.625, 1.375]
+                    );
+                };
+            } else {
+                /* Newer, shinier and probably more rational absolute scales. */
                 majorityScale = d3.scaleLinear(
-                    d3.extent(majorities),
+                    d3.extent([0, 0.35]),
                     [0.625, 1.375]
                 );
-            };
+            }
         }
 
         resultKeys.forEach(stateId => {
@@ -98,7 +112,7 @@
                     const majority = ((leadParty === "D") ? (currentDistrict.projectedDem - currentDistrict.projectedRep) : (currentDistrict.projectedRep - currentDistrict.projectedDem))
                                         / (currentDistrict.projectedDem + currentDistrict.projectedRep);
 
-                    if(currentDistrict.projectedDem - currentDistrict.projectedRep === 0) newColour = resultColours[stateId];
+                    if(currentDistrict.projectedDem - currentDistrict.projectedRep === 0) newColour = stringifyColour(config.partyColours.HouseTie);
                     else {
                         const scaleNum = (majority * 0.5) + 0.5;
                         const inverseLightness = (100 - baseColour.l) * scaleNum;
@@ -106,7 +120,7 @@
                         newColour = stringifyColour({
                             h: baseColour.h,
                             s: baseColour.s * scaleNum,
-                            l: (100 - inverseLightness)
+                            l: Math.max(100 - inverseLightness, 15)
                         });
                     }
                 } else if (electionType === "usSenatePol") {
@@ -174,7 +188,7 @@
                         newColour = stringifyColour({
                             h: baseColour.h,
                             s: baseColour.s * scaleNum,
-                            l: (100 - inverseLightness)
+                            l: Math.max(100 - inverseLightness, 15)
                         });
                     }
                 }
@@ -183,6 +197,105 @@
                     .style("fill", newColour);
             } else d3.select("#" + stateId + "-state-path" + (live ? "-live" : ""))
                 .style("fill", resultColours[stateId]);
+        });
+    };
+
+    const updateCountyMap = (svgMap, electionType, live) => {
+        const currentOrigCounties = resultProxies[electionType][activeMap].counties;
+        const newCounties = [];
+
+        /* The live county map determines the current votes in each county
+           by multiplying the final total votes by a value in an updates
+           array. The value to be used for each candidate in each county is
+           determined by an index given for that county. We need to do this
+           ourselves by getting the index from allStElectData. */
+        const stateElectData = allStElectData.filter(electData => (electData.id === activeMap))[0];
+
+        const majorities = [];
+        const raceInfoCache = {};
+
+        currentOrigCounties.forEach(origCounty => {
+            let totalCurrVotes = 0;
+            let totalVotes = 0;
+
+            const newCounty = {
+                name: origCounty.name,
+                cands: origCounty.cands.map(candObj => {
+                    const newCandObj = Object.assign({}, candObj);
+
+                    if(!live){
+                        newCandObj.currentVotes = newCandObj.votes;
+                    } else {
+                        const countyElectData = stateElectData.counties.filter(candCountyData => (candCountyData.name === origCounty.name))[0];
+                        newCandObj.currentVotes = (newCandObj.votes * candObj.updates[countyElectData.indx]);
+                    }
+
+                    totalCurrVotes += newCandObj.currentVotes;
+                    totalVotes += newCandObj.votes;
+
+                    return newCandObj;
+                })
+            };
+
+            newCounty.totalCurrVotes = totalCurrVotes;
+            newCounty.totalVotes = totalVotes;
+            newCounties.push(newCounty);
+
+            raceInfoCache[newCounty.name] = getRaceInfo(newCounty, live);
+
+            const distMajority = raceInfoCache[newCounty.name].currentLead / (live ? totalCurrVotes : totalVotes);
+
+            if(distMajority !== 1) majorities.push(distMajority);
+            raceInfoCache[newCounty.name].currentMajority = distMajority;
+        });
+
+        let majorityScale = null;
+
+        if(config.useRelativeColourScale){
+            /* This is the old colour scale behaviour. */
+            if(majorities.length > 0){
+                majorityScale = d3.scaleLinear(
+                    d3.extent(majorities),
+                    [0.625, 1.375]
+                );
+            };
+        } else {
+            /* Newer, shinier and probably more rational absolute scales. */
+            majorityScale = d3.scaleLinear(
+                d3.extent([0, 0.35]),
+                [0.625, 1.375]
+            );
+        }
+
+        /* After all this, we're now ready to colour the map! */
+        newCounties.forEach(county => {
+            raceInfo = raceInfoCache[county.name];
+
+            const baseColour = getCandidateColour(raceInfo.currentLeader);
+            const scaleNum = (raceInfo.currentMajority !== 1) ? majorityScale(raceInfo.currentMajority)
+                : majorityScale(d3.max(majorities));
+            const inverseLightness = (100 - baseColour.l) * scaleNum;
+
+            newColour = stringifyColour({
+                h: baseColour.h,
+                s: baseColour.s * scaleNum,
+                l: Math.max(100 - inverseLightness, 15)
+            });
+
+            /* The SVGs contain county names without 'County' appended, so we need
+               to cut this off. However, Maryland has Baltimore County and Baltimore
+               City districts, so we need to check for the full name just in case as
+               a workaround. */
+            const croppedCountyName = county.name.substring(0, county.name.lastIndexOf(" "));
+
+            const replacedFullName = county.name.toLowerCase().replace(/ /g, "_").replace(/\./g, "");
+            const replacedCroppedName = croppedCountyName.toLowerCase().replace(/ /g, "_").replace(/\./g, "");
+
+            if(document.getElementById(replacedFullName + "-state-path" + (live ? "-live" : ""))){
+                d3.select("#" + replacedFullName + "-state-path" + (live ? "-live" : ""))
+                    .style("fill", newColour);
+            } else d3.select("#" + replacedCroppedName + "-state-path" + (live ? "-live" : ""))
+                .style("fill", newColour);
         });
     };
 
@@ -285,17 +398,81 @@
                 === (!live ? "ePageProjectBActive" : "eNightProjectBActive");
         }
 
-        if(!svgMap || svgMap.getAttribute("data-type") !== electionType){
+        /* We want to remove the tooltip update hook if it exists from before. */
+        if(lastUpdateDataHook !== null) {
+            Executive.functions.deregisterPostHook("electNightUpdateData", lastUpdateDataHook);
+            lastUpdateDataHook = null;
+        }
+
+        /* If we were in county view, check that we're still in county view. */
+        if(electionType !== lastMapElectionType) onCountyMap = false;
+        lastMapElectionType = electionType;
+
+        let mapPath = Executive.mods.getRelativePathPrefix() + path.sep + "data" + path.sep +
+            ((electionType === "president") ? "presidential.svg" : "states.svg");
+
+        /* If we're in county view, make sure that's valid – check we're not on a primary,
+           selecting a state which didn't have elections or selecting a state which hasn't
+           started counting yet. */
+        if(onCountyMap){
+            if(!resultProxies[electionType][activeMap]) onCountyMap = false;
+            else if(!resultProxies[electionType][activeMap].cands) onCountyMap = false;
+            else if(resultProxies[electionType][activeMap].totalCurrVotes !== undefined
+                && resultProxies[electionType][activeMap].totalCurrVotes === 0) onCountyMap = false;
+        }
+
+        /* If we're in county view, swap the map. */
+        if(onCountyMap){
+            const countyMapPath = Executive.mods.getRelativePathPrefix() + path.sep + "data" + path.sep + "counties" + path.sep +
+                activeMap.toLowerCase() + ".svg";
+            
+            if(fs.existsSync(countyMapPath)) mapPath = countyMapPath;
+            else onCountyMap = false;
+        }
+
+        /* If we're in county view, we also need to change the buttons in the top-left. */
+        if(onCountyMap){
+            const projectButton = document.getElementById(live ? "eNightProjectB" : "ePageProjectB");
+            const marginButton = document.getElementById(live ? "eNightMarginB" : "ePageMarginB");
+
+            if(projectButton && marginButton){
+                projectButton.setAttribute("style", "display: none;");
+                marginButton.setAttribute("style", "display: none;");
+            }
+
+            const returnButton = document.createElement("button");
+            returnButton.setAttribute("id", projected ? "ePageReturnB2" : (live ? "eNightReturnB" : "ePageReturnB"));
+            returnButton.textContent = "Return to U.S. Map";
+
+            returnButton.onclick = () => {
+                playClick();
+
+                onCountyMap = false;
+
+                /* As we're switching away from county map and there might not be a
+                    state where the cursor currently is, hide the tooltip. */
+                tooltipDiv.setAttribute("style", "display: none;");
+                tooltipComponents.properties.visible = false;
+                tooltipComponents.properties.targetDistrict = null;
+
+                onClickPageFunc();
+            };
+
+            if(projected) container.appendChild(returnButton);
+            else container.insertBefore(returnButton, canvasElem);
+        } else {
+            const returnPresButton = document.getElementById("ePageReturnB2");
+            if(returnPresButton) returnPresButton.remove();
+        }
+
+        if(!svgMap || svgMap.getAttribute("data-type") !== electionType || svgMap.getAttribute("data-source") !== mapPath){
             const origWidth = +(canvasElem.getAttribute("width").substring(0, canvasElem.getAttribute("width").length - 2));
             const origHeight = +(canvasElem.getAttribute("height").substring(0, canvasElem.getAttribute("height").length - 2));
-
-            const mapPath = Executive.mods.getRelativePathPrefix() + path.sep + 
-                ((electionType === "president") ? "data/presidential.svg" : "data/states.svg");
 
             const mapDataText = fs.readFileSync(mapPath, "utf8");
             const mapData = (new DOMParser()).parseFromString(mapDataText, "image/svg+xml");
 
-            if(svgMap && svgMap.getAttribute("data-type") !== electionType) svgMap.remove();
+            if(svgMap && (svgMap.getAttribute("data-type") !== electionType || svgMap.getAttribute("data-source") !== mapPath)) svgMap.remove();
 
             {
                 svgMap = mapData.documentElement;
@@ -309,7 +486,9 @@
                 svgMap.setAttribute("class", "better-maps-container")
                 svgMap.setAttribute("width", origWidth);
                 svgMap.setAttribute("height", origHeight);
+
                 svgMap.setAttribute("data-type", electionType);
+                svgMap.setAttribute("data-source", mapPath);
 
                 containerDiv.appendChild(svgMap);
                 container.insertBefore(containerDiv, canvasElem);
@@ -327,21 +506,40 @@
 
                     statePaths[i].setAttribute("id", stateId.toLowerCase() + "-state-path" + (live ? "-live" : ""));
                     statePaths[i].setAttribute("class", "better-maps-state-path");
+                    statePaths[i].setAttribute("style", "fill: #cccccc;");
 
-                    statePaths[i].addEventListener("click", (event) => {
-                        playClick();
-                        activeMap = stateId;
-                        if(electionType === "president") activeCampMap = Executive.data.states[stateId.toLowerCase()];
-                        onClickPageFunc();
-                    });
+                    if(!onCountyMap){
+                        statePaths[i].addEventListener("click", (event) => {
+                            playClick();
+
+                            activeMap = stateId;
+                            if(electionType === "president") activeCampMap = Executive.data.states[stateId.toLowerCase()];
+
+                            if(electionType !== "usHouse" && electionType !== "usHousePol"
+                                && electionType !== "governorPol" && electionType !== "usSenatePol"){
+                                onCountyMap = true;
+                                
+                                /* As we're switching to the county map and there might not be a
+                                   county where the cursor currently is, hide the tooltip. */
+                                tooltipDiv.setAttribute("style", "display: none;");
+                                tooltipComponents.properties.visible = false;
+                                tooltipComponents.properties.targetDistrict = null;
+                            }
+
+                            onClickPageFunc();
+                        });
+                    }
 
                     if(electionType !== "usHouse" && electionType !== "usHousePol"
                         && electionType !== "governorPol" && electionType !== "usSenatePol"){
                         statePaths[i].addEventListener("mousemove", (event) => {
-                            tooltipDiv.setAttribute("style", `left: ${event.pageX + 10}px; top: ${event.pageY + 10}px;`);
                             tooltipComponents.properties.visible = true;
                             tooltipComponents.properties.targetDistrict = stateId.toLowerCase();
-                            updateTooltip(electionType, stateId.toLowerCase(), false, live);
+
+                            updateTooltip(electionType, stateId.toLowerCase(), false, live, onCountyMap);
+
+                            const yPosition = Math.min(event.pageY + 10, window.innerHeight - tooltipDiv.offsetHeight);
+                            tooltipDiv.setAttribute("style", `left: ${event.pageX + 10}px; top: ${yPosition}px;`);
                         });
     
                         statePaths[i].addEventListener("mouseleave", (event) => {
@@ -352,19 +550,33 @@
                     }
                 }
 
+                const preTransform = outlineGroup.getAttribute("transform");
+
                 if(scaleFactor === (origWidth / baseWidth)){
-                    outlineGroup.setAttribute("transform", `translate(0, ${(origHeight / 2) - ((baseHeight * scaleFactor) / 2)}) scale(${scaleFactor})`);
+                    outlineGroup.setAttribute("transform", `${(preTransform === null ? "" : preTransform)} translate(0, ${(origHeight / 2) - ((baseHeight * scaleFactor) / 2)}) scale(${scaleFactor})`);
                 } else {
-                    outlineGroup.setAttribute("transform", `translate(${(origWidth / 2) - ((baseWidth * scaleFactor) / 2)}, 0) scale(${scaleFactor})`);
+                    outlineGroup.setAttribute("transform", `${(preTransform === null ? "" : preTransform)} translate(${(origWidth / 2) - ((baseWidth * scaleFactor) / 2)}, 0) scale(${scaleFactor})`);
                 }
 
-                updateMap(svgMap, resultColours, electionType, live, isProjected);
+                if(onCountyMap) updateCountyMap(svgMap, electionType, live);
+                else updateMap(svgMap, resultColours, electionType, live, isProjected);
             };
-        } else updateMap(svgMap, resultColours, electionType, live, isProjected);
+        } else {
+            if(onCountyMap) updateCountyMap(svgMap, electionType, live);
+            else updateMap(svgMap, resultColours, electionType, live, isProjected);
+        }
+
+        /* We want a hook to update the tooltip if it's appropriate in live primaries. */
+        if(live && electionType !== "usHouse" && electionType !== "usHousePol"){
+            lastUpdateDataHook = Executive.functions.registerPostHook("electNightUpdateData", () => {
+                if(tooltipComponents.properties.targetDistrict !== null)
+                    updateTooltip(electionType, tooltipComponents.properties.targetDistrict, true, live, onCountyMap);
+            });
+        }
 
         /* Finally, update the tooltip where appropriate. */
         if(tooltipComponents.properties.targetDistrict !== null)
-            updateTooltip(electionType, tooltipComponents.properties.targetDistrict, true, live);
+            updateTooltip(electionType, tooltipComponents.properties.targetDistrict, true, live, onCountyMap);
     };
 
     const newElectPageMap = (canvasElem, resultColours, arg2, electionType) => {
@@ -387,7 +599,10 @@
                 onClickPageFunc = governorElectPage
                 break;
             case "president":
-                onClickPageFunc = updateStDetails
+                onClickPageFunc = () => {
+                    renderMap(canvasElem, resultColours, electionType, false, onClickPageFunc, true, true);
+                    updateStDetails();
+                };
                 break;
         }
 
@@ -441,12 +656,6 @@
             electionType = "governorPol";
         }
 
-        /* Senate/Governor implementations are slightly trickier in this case – we'll skip them for now. 
-        if(electionType !== "usHousePol" && electionType !== "governorPol"){
-            originalSummaryNationMap(canvasElem, resultColours, arg2, arg3);
-            return;
-        }*/
-
         let onClickPageFunc = null;
 
         switch(electionType){
@@ -468,11 +677,14 @@
         const projectButton = document.getElementById("eNightProjectB");
         if(projectButton){
             const buttonObserver = new MutationObserver((mutationList, observer) => {
-                /* We don't expect any other attributes to be changing, so we can just update the map without
-                    further checks. */
-                const svgMap = document.getElementById(electionType + "-map-live");
-                if(svgMap){
-                    newElectNightMap(document.getElementById("electNightCanvas"), JSON.parse(svgMap.getAttribute("data-colours")), 0, electionType);
+                for(const mutation of mutationList){
+                    /* The button change affects the class of the button elements. */
+                    if(mutation.type === "attributes" && mutation.attributeName === "class"){
+                        const svgMap = document.getElementById(electionType + "-map-live");
+                        if(svgMap){
+                            newElectNightMap(document.getElementById("electNightCanvas"), JSON.parse(svgMap.getAttribute("data-colours")), 0, electionType);
+                        }
+                    }
                 }
             });
 
@@ -492,7 +704,6 @@
 
         const partyIDContainer = document.createElement("p");
         partyIDContainer.setAttribute("class", "summaryInnTopPRight");
-        //partyIDContainer.setAttribute("style", "display: inline-flex;");
 
         const demSpan = document.createElement("span");
         demSpan.setAttribute("style", "color: hsl(210, 100%, 60%);");
@@ -536,7 +747,6 @@
         Executive.functions.registerPostHook("electNightPresFunc", createMapChangeObserver("president"));
 
         if(config.showPanePartyID === true){
-            //console.warn("[Better Maps] Support for showing party ID in the election pane is not fully implemented.");
             Executive.functions.registerPostHook("houseElectPage", addPartyID);
             Executive.functions.registerPostHook("senateElectPage", addPartyID);
             Executive.functions.registerPostHook("governorElectPage", addPartyID);

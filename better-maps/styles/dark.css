@@ -6,6 +6,16 @@
    color: hsl(0, 0%, 80%);
 }
 
+#dc-state-path,#dc-state-path-live {
+   stroke: hsl(0, 0%, 20%);
+   stroke-width: 1px;
+}
+
+.better-maps-state-path:hover {
+   stroke: hsl(0, 0%, 0%) !important;
+   stroke-width: 1px;
+}
+
 #better-maps-tooltip hr {
    width: calc(100% - 20px);
 

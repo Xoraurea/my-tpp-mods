@@ -54,11 +54,6 @@
     border-color: hsl(0, 0%, 20%);
 }
 
-.better-maps-state-path:hover {
-    stroke: hsl(0, 0%, 0%);
-    stroke-width: 1px;
-}
-
 #better-maps-tooltip {
     z-index: 4;
     position: fixed;
@@ -70,7 +65,7 @@
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 
-    width: 300px;
+    min-width: 300px;
 
     padding-bottom: 5px;
 
@@ -110,6 +105,8 @@
 }
 
 #better-maps-tooltip-reporting {
+    margin-left: 10px;
+
     font-size: 16px;
 }
 
@@ -118,6 +115,17 @@
 
     margin-left: 10px;
     margin-right: 10px;
+    max-width: 280px;
+}
+
+#better-maps-tooltip-electors {
+    font-size: 14px;
+    font-style: italic;
+    text-align: right;
+
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 3px;
 }
 
 #better-maps-tooltip-entries {
