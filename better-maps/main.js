@@ -490,6 +490,12 @@
                 svgMap.setAttribute("data-type", electionType);
                 svgMap.setAttribute("data-source", mapPath);
 
+                /* If the property is enabled, use the user-defined map background in the config. */
+                if(config.mapBackground){
+                    const currentColour = config.mapBackgroundColours[Executive.styles.currentTheme];
+                    svgMap.setAttribute("style", `background: hsl(${currentColour.h}, ${currentColour.s}%, ${currentColour.l}%)`);
+                }
+
                 containerDiv.appendChild(svgMap);
                 container.insertBefore(containerDiv, canvasElem);
 
@@ -751,6 +757,20 @@
             Executive.functions.registerPostHook("senateElectPage", addPartyID);
             Executive.functions.registerPostHook("governorElectPage", addPartyID);
         }
+
+        /* If custom map backgrounds are enabled, we want to change the background of the map container whenever
+           the player changes the selected theme. */
+        Executive.styles.onThemeChange.registerListener((eventObj, darkMode) => {
+            if(config.mapBackground){
+                const currentColour = config.mapBackgroundColours[Executive.styles.currentTheme];
+                const currentContainers = document.getElementsByClassName("better-maps-container");
+
+                for(let i = 0; i < currentContainers.length; i++){
+                    currentContainers[i].setAttribute("style",
+                        `background: hsl(${currentColour.h}, ${currentColour.s}%, ${currentColour.l}%)`);
+                }
+            }
+        });
     };
 
     module.exports = mod;

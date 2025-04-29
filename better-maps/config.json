@@ -9,6 +9,13 @@
         },
         "HouseTie": {"h": 0, "s": 0, "l": 90}
     },
+
     "showPanePartyID": true,
-    "useRelativeColourScale": false
+    "useRelativeColourScale": false,
+
+    "mapBackground": true,
+    "mapBackgroundColours": {
+        "dark": {"h": 0, "s": 0, "l": 20},
+        "light": {"h": 0, "s": 0, "l": 100}
+    }
 }
