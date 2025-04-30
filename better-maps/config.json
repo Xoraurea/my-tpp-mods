@@ -16,6 +16,19 @@
     "mapBackground": true,
     "mapBackgroundColours": {
         "dark": {"h": 0, "s": 0, "l": 20},
-        "light": {"h": 0, "s": 0, "l": 100}
+        "light": {"h": 0, "s": 0, "l": 95}
+    },
+
+    "mapBorders": false,
+
+    "alternateCaucusCountyColours": {
+        "D": [
+            {"h": 300, "s": 37, "l": 43},
+            {"h": 120, "s": 37, "l": 43}
+        ],
+        "R": [
+            {"h": 48, "s": 61, "l": 55},
+            {"h": 24, "s": 61, "l": 55}
+        ]
     }
 }

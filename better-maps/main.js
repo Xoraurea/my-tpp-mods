@@ -218,10 +218,19 @@
             let totalCurrVotes = 0;
             let totalVotes = 0;
 
+            let caucusNum = {
+                D: 0,
+                R: 0
+            };
+
             const newCounty = {
                 name: origCounty.name,
                 cands: origCounty.cands.map(candObj => {
                     const newCandObj = Object.assign({}, candObj);
+
+                    /* We want to count how many candidates there are for each caucus for map colouring. */
+                    newCandObj.caucusCandNum = caucusNum[candObj.caucus];
+                    caucusNum[candObj.caucus]++;
 
                     if(!live){
                         newCandObj.currentVotes = newCandObj.votes;
@@ -271,7 +280,15 @@
         newCounties.forEach(county => {
             raceInfo = raceInfoCache[county.name];
 
-            const baseColour = getCandidateColour(raceInfo.currentLeader);
+            let baseColour = getCandidateColour(raceInfo.currentLeader);
+
+            /* If the candidate isn't the first candidate from their caucus, pick a different colour from the config
+               for them. */
+            if(raceInfo.currentLeader.caucusCandNum !== 0){
+                const colourIndex = (raceInfo.currentLeader.caucusCandNum - 1) % config.alternateCaucusCountyColours[raceInfo.currentLeader.caucus].length;
+                baseColour = config.alternateCaucusCountyColours[raceInfo.currentLeader.caucus][colourIndex];
+            }
+
             const scaleNum = (raceInfo.currentMajority !== 1) ? majorityScale(raceInfo.currentMajority)
                 : majorityScale(d3.max(majorities));
             const inverseLightness = (100 - baseColour.l) * scaleNum;
@@ -512,7 +529,7 @@
 
                     statePaths[i].setAttribute("id", stateId.toLowerCase() + "-state-path" + (live ? "-live" : ""));
                     statePaths[i].setAttribute("class", "better-maps-state-path");
-                    statePaths[i].setAttribute("style", "fill: #cccccc;");
+                    statePaths[i].setAttribute("style", `fill: #cccccc; ${config.mapBorders ? "stroke: hsl(0, 0%, 20%); stroke-width: 0.75px" : ""}`);
 
                     if(!onCountyMap){
                         statePaths[i].addEventListener("click", (event) => {
