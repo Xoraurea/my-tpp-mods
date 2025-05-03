@@ -25,7 +25,9 @@ All of my mods are currently in beta – please report any bugs you discover!
 
 Colours for each type of politician are expressed as HSL values in `config.json`. Colours for Democrats and Republicans are picked from `D` and `R` under `partyColours`, while colours for Independent Democrats and Independent Republicans are picked from `D` and `R` under `I`.
 
-`showPanePartyID` adjusts whether the mod adds party identification demographics to the side pane under the Elections tab.
+`showPanePartyID` adjusts whether the mod adds party identification demographics to the side pane under the Elections tab, while `mapBackground` toggles whether a background colour is used for maps. The colours used in light and dark mode can be adjusted in `mapBackgroundColours`, and borders for each state/count can be toggled with `mapBorders`.
+
+In county maps, the mod will use alternate colours for some candidates if multiple candidates are from the same caucus. The pool of colours used for each caucus can be adjusted and added to in `alternateCaucusCountyColours`.
 
 ## Event Commander
 
