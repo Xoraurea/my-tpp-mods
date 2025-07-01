@@ -6,8 +6,8 @@
     "version": {
         "major": 0,
         "minor": 1,
-        "revision": 0,
-        "string": "b0.1.0"
+        "revision": 1,
+        "string": "b0.1.1"
     },
     "required_loader_version": {
         "major": 0,

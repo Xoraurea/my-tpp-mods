@@ -508,9 +508,16 @@
                     /* Now insert the event. */
                     customEvents.events.push(newEvent);
                     newPackage.events.push(newEvent.id);
+                    writeChanges();
                 },
                 true,
-                writeChanges
+                writeChanges,
+                () => {
+                    /* If the user closes the dialog, save the event as an unpackaged event. */
+                    customEvents.events.push(newEvent);
+                    currentCatalogue.unsorted.push(newEvent.id);
+                    writeChanges();
+                }
             );
         }
     };

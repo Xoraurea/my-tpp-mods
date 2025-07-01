@@ -389,7 +389,7 @@
     };
 
     /* We need dialogs for event creators to select packages and events. */
-    const selectTargetDialog = (isPackage, promptTitle, promptMessage, customEvents, currentCatalogue, callback, newPackageOpt, writeChanges) => {
+    const selectTargetDialog = (isPackage, promptTitle, promptMessage, customEvents, currentCatalogue, callback, newPackageOpt, writeChanges, closeback) => {
         /* Create the dialog elements. */
         const backDiv = document.createElement("div");
         backDiv.setAttribute("class", "evtCmdrDialogBack");
@@ -415,6 +415,7 @@
 
         closeButton.onclick = () => {
             playClick();
+            if(closeback) closeback();
             backDiv.remove();
         };
 
@@ -474,8 +475,8 @@
         }
     };
 
-    const selectTargetPackage = (promptTitle, promptMessage, customEvents, currentCatalogue, callback, newPackageOpt, writeChanges) => {
-        selectTargetDialog(true, promptTitle, promptMessage, customEvents, currentCatalogue, callback, newPackageOpt, writeChanges);
+    const selectTargetPackage = (promptTitle, promptMessage, customEvents, currentCatalogue, callback, newPackageOpt, writeChanges, closeback) => {
+        selectTargetDialog(true, promptTitle, promptMessage, customEvents, currentCatalogue, callback, newPackageOpt, writeChanges, closeback);
     };
 
     const selectTargetEvent = (promptTitle, promptMessage, customEvents, currentCatalogue, callback) => {
